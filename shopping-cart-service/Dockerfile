@@ -12,4 +12,4 @@ FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/target/shopping-cart-service-0.0.1-SNAPSHOT.war /app/shopping-cart-service.war
 
-ENTRYPOINT ["java", "-Djdk.cgroup.disabled=true", "-jar", "shopping-cart-service.war"]
+CMD ["java", "-jar", "shopping-cart-service.war"]

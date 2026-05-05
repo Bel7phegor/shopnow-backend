@@ -12,4 +12,4 @@ FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/target/discovery-server-0.0.1-SNAPSHOT.war /app/discovery-server.war
 
-ENTRYPOINT ["java", "-Djdk.cgroup.disabled=true", "-jar", "discovery-server.war"]
+CMD ["java", "-jar", "discovery-server.war"]

@@ -12,4 +12,4 @@ FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/target/api-gateway-0.0.1-SNAPSHOT.war /app/api-gateway.war
 
-ENTRYPOINT ["java", "-Djdk.cgroup.disabled=true", "-jar", "api-gateway.war"]
+CMD ["java", "-jar", "api-gateway.war"]
