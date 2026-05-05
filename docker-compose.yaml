@@ -66,10 +66,10 @@ services:
       - discovery-server
       - postgres
     environment:
-      - JAVA_OPTS=-Djdk.cgroup.disabled=true
-        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
-        SPRING_DATASOURCE_USERNAME: postgres
-        SPRING_DATASOURCE_PASSWORD: admin
+      JAVA_OPTS: "-Djdk.cgroup.disabled=true"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "admin"
     logging:
       driver: "awslogs"
       options:
@@ -88,10 +88,10 @@ services:
       - discovery-server
       - postgres
     environment:
-      - JAVA_OPTS=-Djdk.cgroup.disabled=true
-        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
-        SPRING_DATASOURCE_USERNAME: postgres
-        SPRING_DATASOURCE_PASSWORD: admin
+      JAVA_OPTS: "-Djdk.cgroup.disabled=true"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "admin"
     logging:
       driver: "awslogs"
       options:
@@ -106,16 +106,14 @@ services:
     image: user-service:latest
     ports:
       - "5865:5865"
-    environment:
-      - JAVA_OPTS=-Djdk.cgroup.disabled=true
     depends_on:
       - discovery-server
       - postgres
     environment:
-      - JAVA_OPTS=-Djdk.cgroup.disabled=true
-        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
-        SPRING_DATASOURCE_USERNAME: postgres
-        SPRING_DATASOURCE_PASSWORD: admin
+      JAVA_OPTS: "-Djdk.cgroup.disabled=true"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "admin"
     logging:
       driver: "awslogs"
       options:
