@@ -17,10 +17,11 @@ services:
       - user-service
       - postgres
     logging:
-      driver: "awslogs"
+      driver: awslogs
       options:
         awslogs-group: "/ec2-docker/api"
         awslogs-region: "ap-southeast-3"
+        awslogs-create-group: "true"
         awslogs-stream-prefix: "api"
 
   config-server:
@@ -33,10 +34,11 @@ services:
     environment:
       - JAVA_OPTS=-Djdk.cgroup.disabled=true
     logging:
-      driver: "awslogs"
+      driver: awslogs
       options:
         awslogs-group: "/ec2-docker/config-server"
         awslogs-region: "ap-southeast-3"
+        awslogs-create-group: "true"
         awslogs-stream-prefix: "config-server"
 
   discovery-server:
@@ -49,10 +51,11 @@ services:
     environment:
       - JAVA_OPTS=-Djdk.cgroup.disabled=true
     logging:
-      driver: "awslogs"
+      driver: awslogs
       options:
         awslogs-group: "/ec2-docker/discovery"
         awslogs-region: "ap-southeast-3"
+        awslogs-create-group: "true"
         awslogs-stream-prefix: "discovery"
 
   product-service:
@@ -71,10 +74,11 @@ services:
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "admin"
     logging:
-      driver: "awslogs"
+      driver: awslogs
       options:
         awslogs-group: "/ec2-docker/products"
         awslogs-region: "ap-southeast-3"
+        awslogs-create-group: "true"
         awslogs-stream-prefix: "products"
 
   shopping-cart-service:
@@ -93,10 +97,11 @@ services:
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "admin"
     logging:
-      driver: "awslogs"
+      driver: awslogs
       options:
         awslogs-group: "/ec2-docker/cart"
         awslogs-region: "ap-southeast-3"
+        awslogs-create-group: "true"
         awslogs-stream-prefix: "cart"
 
   user-service:
@@ -115,10 +120,11 @@ services:
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "admin"
     logging:
-      driver: "awslogs"
+      driver: awslogs
       options:
         awslogs-group: "/ec2-docker/user"
         awslogs-region: "ap-southeast-3"
+        awslogs-create-group: "true"
         awslogs-stream-prefix: "user"
 
   postgres:
@@ -131,10 +137,11 @@ services:
     ports:
       - "6543:5432"
     logging:
-      driver: "awslogs"
+      driver: awslogs
       options:
         awslogs-group: "/ec2-docker/postgres"
         awslogs-region: "ap-southeast-3"
+        awslogs-create-group: "true"
         awslogs-stream-prefix: "postgres" 
 
   keycloak-mysql:
