@@ -22,7 +22,7 @@ services:
         awslogs-group: "/ec2-docker/api"
         awslogs-region: "ap-southeast-3"
         awslogs-create-group: "true"
-        awslogs-stream-prefix: "api"
+
 
   config-server:
     build:
@@ -39,7 +39,6 @@ services:
         awslogs-group: "/ec2-docker/config-server"
         awslogs-region: "ap-southeast-3"
         awslogs-create-group: "true"
-        awslogs-stream-prefix: "config-server"
 
   discovery-server:
     build:
@@ -56,7 +55,6 @@ services:
         awslogs-group: "/ec2-docker/discovery"
         awslogs-region: "ap-southeast-3"
         awslogs-create-group: "true"
-        awslogs-stream-prefix: "discovery"
 
   product-service:
     build:
@@ -79,7 +77,6 @@ services:
         awslogs-group: "/ec2-docker/products"
         awslogs-region: "ap-southeast-3"
         awslogs-create-group: "true"
-        awslogs-stream-prefix: "products"
 
   shopping-cart-service:
     build:
@@ -102,7 +99,6 @@ services:
         awslogs-group: "/ec2-docker/cart"
         awslogs-region: "ap-southeast-3"
         awslogs-create-group: "true"
-        awslogs-stream-prefix: "cart"
 
   user-service:
     build:
@@ -125,7 +121,6 @@ services:
         awslogs-group: "/ec2-docker/user"
         awslogs-region: "ap-southeast-3"
         awslogs-create-group: "true"
-        awslogs-stream-prefix: "user"
 
   postgres:
     image: postgres:latest
@@ -142,7 +137,6 @@ services:
         awslogs-group: "/ec2-docker/postgres"
         awslogs-region: "ap-southeast-3"
         awslogs-create-group: "true"
-        awslogs-stream-prefix: "postgres" 
 
   keycloak-mysql:
     container_name: keycloak-mysql
