@@ -12,4 +12,4 @@ FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/target/shopping-cart-service-0.0.1-SNAPSHOT.war /app/shopping-cart-service.war
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar api-gateway.war"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar shopping-cart-service.war"]
