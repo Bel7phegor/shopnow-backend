@@ -12,4 +12,4 @@ FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/target/user-service-0.0.1-SNAPSHOT.war /app/user-service.war
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar user-service.war"]
+ENTRYPOINT ["java", "-Djdk.cgroup.disabled=true", "-jar", "user-service.war"]

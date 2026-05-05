@@ -6,8 +6,6 @@ services:
     image: api-gateway:latest
     ports:
       - "5860:5860"
-    environment:
-      - JAVA_OPTS=-Djdk.cgroup.disabled=true  
     depends_on:
       - keycloak
       - config-server
@@ -31,8 +29,6 @@ services:
     image: config-server:latest
     ports:
       - "5859:5859"
-    environment:
-      - JAVA_OPTS=-Djdk.cgroup.disabled=true
     logging:
       driver: awslogs
       options:
@@ -47,8 +43,6 @@ services:
     image: discovery-server:latest
     ports:
       - "8761:8761"
-    environment:
-      - JAVA_OPTS=-Djdk.cgroup.disabled=true
     logging:
       driver: awslogs
       options:
@@ -67,7 +61,6 @@ services:
       - discovery-server
       - postgres
     environment:
-      JAVA_OPTS: "-Djdk.cgroup.disabled=true"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "admin"
@@ -89,7 +82,6 @@ services:
       - discovery-server
       - postgres
     environment:
-      JAVA_OPTS: "-Djdk.cgroup.disabled=true"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "admin"
@@ -111,7 +103,6 @@ services:
       - discovery-server
       - postgres
     environment:
-      JAVA_OPTS: "-Djdk.cgroup.disabled=true"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "admin"
