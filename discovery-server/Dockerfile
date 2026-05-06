@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=builder /app/target/discovery-server-0.0.1-SNAPSHOT.war /app/discovery-server.war
 
 EXPOSE 8761
-ENTRYPOINT exec java -jar /app/discovery-server.war --spring.config.location=/app/src/main/resources/application.properties
+ENTRYPOINT ["java", "-Djdk.cgroup.disabled=true", "-jar", "/app/discovery-server.war", "--spring.config.location=/app/src/main/resources/application.properties"]

@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=builder /app/target/shopping-cart-service-0.0.1-SNAPSHOT.war /app/shopping-cart-service.war
 
 EXPOSE 5863
-ENTRYPOINT exec java -jar /app/shopping-cart-service.war --spring.config.location=/app/src/main/resources/application.properties
+ENTRYPOINT ["java", "-Djdk.cgroup.disabled=true", "-jar", "/app/shopping-cart-service.war", "--spring.config.location=/app/src/main/resources/application.properties"]
