@@ -1,6 +1,5 @@
 # Stage 1: Build the application
 FROM openjdk:17.0.1-jdk-slim AS builder
-
 WORKDIR /app
 COPY . .
 RUN chmod +x ./mvnw
@@ -12,4 +11,5 @@ FROM openjdk:17.0.1-jdk-slim
 WORKDIR /app
 COPY --from=builder /app/target/shopping-cart-service-0.0.1-SNAPSHOT.war /app/shopping-cart-service.war
 
-CMD ["java", "-jar", "shopping-cart-service.war"]
+EXPOSE 5863
+ENTRYPOINT exec java -jar /app/shopping-cart-service.war --spring.config.location=/app/src/main/resources/application.properties
