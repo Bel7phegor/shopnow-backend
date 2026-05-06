@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=builder /app/target/user-service-0.0.1-SNAPSHOT.war /app/user-service.war
 
 EXPOSE 5865
-ENTRYPOINT exec java -jar /app/user-service.war --spring.config.location=/app/src/main/resouces/application.properties
+ENTRYPOINT exec java -jar /app/user-service.war --spring.config.location=/app/src/main/resources/application.properties
