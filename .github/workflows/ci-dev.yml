@@ -82,11 +82,11 @@ jobs:
     
     env:
       PORT_API_GATEWAY: ${{ secrets.PORT_API_GATEWAY }}
+      PORT_CONFIG_SERVER: ${{ secrets.PORT_CONFIG_SERVER }}
       PORT_DISCOVERY_SERVER: ${{ secrets.PORT_DISCOVERY_SERVER }}
       PORT_PRODUCT_SERVICE: ${{ secrets.PORT_PRODUCT_SERVICE }}
       PORT_SHOPPING_CART_SERVICE: ${{ secrets.PORT_SHOPPING_CART_SERVICE }}
       PORT_USER_SERVICE: ${{ secrets.PORT_USER_SERVICE }}
-      # Không cần khai báo PORT_CONFIG_SERVER ở đây nữa vì nó không có port
 
     steps:
       - name: Configure AWS credentials
@@ -95,26 +95,21 @@ jobs:
           role-to-assume: ${{ secrets.ROLE_ACCESS }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set Dynamic Port Mapping or Skip
+      - name: Set Dynamic Port Mapping from Secrets
         id: set-port
         run: |
-          # 1. Nếu là config-server thì KHÔNG tạo cờ -p (để rỗng)
-          if [ "${{ matrix.service }}" = "config-server" ]; then
-            echo "Xử lý config-server: Không map port ra ngoài EC2"
-            echo "DOCKER_PORT_FLAG=" >> $GITHUB_ENV
-          else
-            # 2. Với các service khác, lấy port từ Secret như cũ
-            SERVICE_CONVERTED=$(echo "${{ matrix.service }}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
-            VAR_NAME="PORT_${SERVICE_CONVERTED}"
-            PORT_VAL="${!VAR_NAME}"
-            
-            if [ -z "$PORT_VAL" ]; then
-              echo "Warning: Secret $VAR_NAME trống, tự động fallback về port 80"
-              PORT_VAL="80"
-            fi
-            
-            echo "DOCKER_PORT_FLAG=-p ${PORT_VAL}:${PORT_VAL}" >> $GITHUB_ENV
+          SERVICE_CONVERTED=$(echo "${{ matrix.service }}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+          
+          VAR_NAME="PORT_${SERVICE_CONVERTED}"
+          
+          PORT_VAL="${!VAR_NAME}"
+          
+          if [ -z "$PORT_VAL" ]; then
+            echo "Warning: Secret $VAR_NAME is not set, defaulting to port 80"
+            PORT_VAL="80"
           fi
+          
+          echo "PORT_MAPPING=${PORT_VAL}:${PORT_VAL}" >> $GITHUB_ENV
 
       - name: Deploy ${{ matrix.service }} on AWS with CloudWatch Logs
         run: |
@@ -125,7 +120,8 @@ jobs:
           
           docker pull ${{ secrets.ECR_REGISTRY }}/${{ github.event.repository.name }}/${{ matrix.service }}:${{ github.sha }}
           
-          docker run -d ${{ env.DOCKER_PORT_FLAG }} \
+          # Sử dụng biến port động đã bốc từ Secret ra thành công ở trên
+          docker run -d -p ${{ env.PORT_MAPPING }} \
             --name ${{ matrix.service }} \
             --restart unless-stopped \
             --log-driver=awslogs \
