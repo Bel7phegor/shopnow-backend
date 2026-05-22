@@ -32,6 +32,7 @@ jobs:
             product-service: 'product-service/**'
             shopping-cart-service: 'shopping-cart-service/**'
             user-service: 'user-service/**'
+            discovery-server: 'discovery-server/**'
 
   build:
     name: Build & Push
@@ -68,3 +69,67 @@ jobs:
             .
             
           docker push ${{ secrets.ECR_REGISTRY }}/${{ github.event.repository.name }}/${{ matrix.service }}:${{ github.sha }}
+  
+  deploy: 
+    name: Deploy to AWS EC2
+    runs-on: [self-hosted, be-runner-dev]
+    needs: [detect-changes, build]
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
+    environment: development
+    strategy:
+      matrix:
+        service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
+    
+    env:
+      PORT_API_GATEWAY: ${{ secrets.PORT_API_GATEWAY }}
+      PORT_DISCOVERY_SERVER: ${{ secrets.PORT_DISCOVERY_SERVER }}
+      PORT_PRODUCT_SERVICE: ${{ secrets.PORT_PRODUCT_SERVICE }}
+      PORT_SHOPPING_CART_SERVICE: ${{ secrets.PORT_SHOPPING_CART_SERVICE }}
+      PORT_USER_SERVICE: ${{ secrets.PORT_USER_SERVICE }}
+      # Không cần khai báo PORT_CONFIG_SERVER ở đây nữa vì nó không có port
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with: 
+          role-to-assume: ${{ secrets.ROLE_ACCESS }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set Dynamic Port Mapping or Skip
+        id: set-port
+        run: |
+          # 1. Nếu là config-server thì KHÔNG tạo cờ -p (để rỗng)
+          if [ "${{ matrix.service }}" = "config-server" ]; then
+            echo "Xử lý config-server: Không map port ra ngoài EC2"
+            echo "DOCKER_PORT_FLAG=" >> $GITHUB_ENV
+          else
+            # 2. Với các service khác, lấy port từ Secret như cũ
+            SERVICE_CONVERTED=$(echo "${{ matrix.service }}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+            VAR_NAME="PORT_${SERVICE_CONVERTED}"
+            PORT_VAL="${!VAR_NAME}"
+            
+            if [ -z "$PORT_VAL" ]; then
+              echo "Warning: Secret $VAR_NAME trống, tự động fallback về port 80"
+              PORT_VAL="80"
+            fi
+            
+            echo "DOCKER_PORT_FLAG=-p ${PORT_VAL}:${PORT_VAL}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy ${{ matrix.service }} on AWS with CloudWatch Logs
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+          
+          docker stop ${{ matrix.service }} || true
+          docker rm ${{ matrix.service }} || true
+          
+          docker pull ${{ secrets.ECR_REGISTRY }}/${{ github.event.repository.name }}/${{ matrix.service }}:${{ github.sha }}
+          
+          docker run -d ${{ env.DOCKER_PORT_FLAG }} \
+            --name ${{ matrix.service }} \
+            --restart unless-stopped \
+            --log-driver=awslogs \
+            --log-opt awslogs-region=${{ env.AWS_REGION }} \
+            --log-opt awslogs-group=/ec2/${{ matrix.service }} \
+            --log-opt awslogs-create-group=true \
+            ${{ secrets.ECR_REGISTRY }}/${{ github.event.repository.name }}/${{ matrix.service }}:${{ github.sha }}
