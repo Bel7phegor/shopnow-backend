@@ -67,5 +67,4 @@ jobs:
             -t ${{ secrets.ECR_REGISTRY }}/${{ github.event.repository.name }}/${{ matrix.service }}:${{ github.sha }} \
             .
             
-          docker push ${{ secrets.ECR_REGISTRY }}
-          /${{ matrix.service }}:dev_${{ github.sha }}
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ github.event.repository.name }}/${{ matrix.service }}:${{ github.sha }}
