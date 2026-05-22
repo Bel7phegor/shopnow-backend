@@ -6,7 +6,7 @@ on:
 
 env:
   AWS_REGION: ap-southeast-3
-  ROLE_ACCESS: arn:aws:iam::250830191861:role/github-fe-shopnow-prod-role
+  ROLE_ACCESS: arn:aws:iam::250830191861:role/github-be-shopnow-dev-role
 
 permissions:
   id-token: write
@@ -39,6 +39,7 @@ jobs:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
     runs-on: ubuntu-latest
+    environment: development
     strategy:
       matrix:
         service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
