@@ -8,15 +8,39 @@ Enterprise-grade Spring Boot microservices backend deployed on AWS with producti
 - [ShopNow Backend: Java Spring Boot Microservices with AWS Infrastructure \& DevSecOps Pipeline](#shopnow-backend-java-spring-boot-microservices-with-aws-infrastructure--devsecops-pipeline)
   - [1. System Architecture](#1-system-architecture)
   - [2. Microservices Overview](#2-microservices-overview)
+    - [API Gateway](#api-gateway)
+    - [Discovery Server (Eureka)](#discovery-server-eureka)
+    - [Config Server](#config-server)
+    - [Product Service](#product-service)
+    - [User Service](#user-service)
+    - [Shopping Cart Service](#shopping-cart-service)
   - [3. Multi-Environment Strategy](#3-multi-environment-strategy)
-  - [4. Network & Security](#4-network--security)
-  - [5. Repository Structure & Build Management](#5-repository-structure--build-management)
+    - [Development Environment](#development-environment)
+    - [Production Environment (EKS/K8s - via shopnow-infa)](#production-environment-eksk8s---via-shopnow-infa)
+    - [Environment-Specific Configuration](#environment-specific-configuration)
+  - [4. Network \& Security](#4-network--security)
+    - [Development Environment (EC2)](#development-environment-ec2)
+    - [Production Environment (EKS)](#production-environment-eks)
+  - [5. Repository Structure \& Build Management](#5-repository-structure--build-management)
+    - [Docker Image Management](#docker-image-management)
   - [6. Docker Microservices](#6-docker-microservices)
+    - [Local Development with Docker Compose](#local-development-with-docker-compose)
   - [7. Tech Stack](#7-tech-stack)
-  - [8. Getting Started](#8-getting-started)
-  - [9. API Documentation](#9-api-documentation)
-  - [10. Monitoring & Operations](#10-monitoring--operations)
-  - [11. Contact Information](#11-contact-information)
+    - [Backend Framework](#backend-framework)
+    - [Service Architecture](#service-architecture)
+    - [Data Access](#data-access)
+    - [Containerization \& DevOps](#containerization--devops)
+    - [Security \& Scanning](#security--scanning)
+    - [API Documentation](#api-documentation)
+  - [8. API Documentation](#8-api-documentation)
+    - [Available Endpoints](#available-endpoints)
+    - [Swagger UI](#swagger-ui)
+    - [Postman Collection](#postman-collection)
+  - [9. Monitoring \& Operations](#9-monitoring--operations)
+    - [Local Logging](#local-logging)
+    - [Production Monitoring (EKS)](#production-monitoring-eks)
+    - [Service Dependencies](#service-dependencies)
+  - [10. Contact Information](#10-contact-information)
 
 </details>
 
@@ -35,25 +59,7 @@ The backend is built with a distributed microservices architecture on AWS:
 * **Container Registry:** AWS ECR stores multi-service Docker images.
 * **Logging & Monitoring:** AWS CloudWatch aggregates logs from all containerized services.
 
-```
-Internet
-    ↓
-Route 53 (DNS)
-    ↓
-ALB (HTTPS/TLS)
-    ↓
-API Gateway (Port 5860) — OAuth2/Keycloak
-    ├─ Product Service (Port 5861)
-    ├─ User Service (Port 5865)
-    ├─ Shopping Cart Service (Port 5863)
-    ├─ Discovery Server (Eureka - Port 8761)
-    └─ Config Server (Port 5859)
-         ↓
-    PostgreSQL (Data Store)
-    Keycloak (Auth Store - MySQL 5.7)
-```
-
----
+--- 
 
 ## 2. Microservices Overview
 
@@ -186,53 +192,6 @@ Infrastructure provisioned via Terraform [shopnow-infa](https://github.com/Bel7p
 
 ## 5. Repository Structure & Build Management
 
-### Monorepo Structure
-
-```
-shopnow-backend/
-├── api-gateway/                 # Spring Cloud Gateway
-│   ├── src/
-│   ├── pom.xml
-│   └── Dockerfile
-├── config-server/               # Configuration Server
-│   ├── src/
-│   ├── pom.xml
-│   └── Dockerfile
-├── discovery-server/            # Eureka Server
-│   ├── src/
-│   ├── pom.xml
-│   └── Dockerfile
-├── product-service/             # Product Microservice
-│   ├── src/
-│   ├── pom.xml
-│   └── Dockerfile
-├── user-service/                # User Microservice
-│   ├── src/
-│   ├── pom.xml
-│   └── Dockerfile
-├── shopping-cart-service/       # Cart Microservice
-│   ├── src/
-│   ├── pom.xml
-│   └── Dockerfile
-├── docker-compose.yaml          # Local dev environment
-├── product-data.sql             # Seed data
-├── keycloak-realms/             # Keycloak realm configurations
-├── pom.xml                       # Parent Maven POM
-└── Spring Boot Microservice.postman_collection.json
-```
-
-### Maven Build System
-
-- **Parent POM:** Shared Spring Boot 3.1.7 configuration
-- **Spring Cloud Version:** 2022.0.4
-- **Java Version:** 17 (OpenJDK)
-- **Build Output:** WAR files (compatible with Tomcat)
-
-**Build Command:**
-```bash
-mvn clean package -DskipTests  # Build all services
-```
-
 ### Docker Image Management
 
 **Multi-stage Build Pattern (each service):**
@@ -260,17 +219,6 @@ FROM openjdk:17.0.1-jdk-slim
 ## 6. Docker Microservices
 
 ### Local Development with Docker Compose
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f api-gateway
-
-# Stop services
-docker-compose down
-```
 
 **Services Running:**
 - api-gateway (5860)
@@ -347,80 +295,7 @@ KEYCLOAK_ADMIN_PASSWORD: admin
 
 ---
 
-## 8. Getting Started
-
-### Local Development Setup
-
-1. **Clone repository:**
-```bash
-git clone https://github.com/Bel7phegor/shopnow-backend.git
-cd shopnow-backend
-```
-
-2. **Prerequisites:**
-```bash
-# Java 17+
-java -version
-
-# Maven 3.6+
-mvn -version
-
-# Docker & Docker Compose
-docker --version
-docker-compose --version
-```
-
-3. **Build all services:**
-```bash
-mvn clean package -DskipTests
-```
-
-4. **Start with docker-compose:**
-```bash
-docker-compose up -d
-
-# Wait for all services to be healthy (1-2 minutes)
-docker-compose logs -f
-```
-
-5. **Verify services are running:**
-```bash
-# API Gateway
-curl -X GET http://localhost:5860/actuator/health
-
-# Discovery Server (Eureka)
-curl -X GET http://localhost:8761/
-
-# Swagger UI
-open http://localhost:5860/swagger-ui.html
-
-# Keycloak
-open http://localhost:8080
-```
-
-### Individual Service Development
-
-```bash
-# Build single service
-cd product-service
-mvn clean package -DskipTests
-
-# Run service directly (requires other services in docker-compose)
-mvn spring-boot:run
-
-# Or run from IDE (Spring Boot Dashboard in VS Code or IntelliJ)
-```
-
-### Database Initialization
-
-```bash
-# Seed product data (PostgreSQL)
-docker exec shopnow-backend-postgres-1 psql -U postgres -d postgres -f /docker-entrypoint-initdb.d/product-data.sql
-```
-
----
-
-## 9. API Documentation
+## 8. API Documentation
 
 ### Available Endpoints
 
@@ -446,7 +321,6 @@ docker exec shopnow-backend-postgres-1 psql -U postgres -d postgres -f /docker-e
 ### Swagger UI
 
 - **URL:** http://localhost:5860/swagger-ui.html
-- **OpenAPI JSON:** http://localhost:5860/v3/openapi.json
 - **Auto-generated documentation** for all microservices
 
 ### Postman Collection
@@ -463,7 +337,7 @@ Import [Spring Boot Microservice.postman_collection.json](./Spring%20Boot%20Micr
 
 ---
 
-## 10. Monitoring & Operations
+## 9. Monitoring & Operations
 
 ### Local Logging
 
@@ -488,11 +362,6 @@ docker logs shopnow-backend-api-gateway-1 --tail 100
 - Custom metrics via Spring Boot Actuator
 - ALB/NLB target health
 
-**Health Checks:**
-- Kubernetes liveness probe: `/actuator/health`
-- Kubernetes readiness probe: `/actuator/health/readiness`
-- Eureka heartbeat: Service availability in discovery
-
 ### Service Dependencies
 
 ```
@@ -508,7 +377,7 @@ All Services → Discovery Server (Eureka)
 
 ---
 
-## 11. Contact Information
+## 10. Contact Information
 
 **Author:** Bel7phegor (Nguyễn An Phúc)
 
@@ -520,10 +389,6 @@ All Services → Discovery Server (Eureka)
 **Related Projects:**
 - Frontend: [shopnow-frontend](https://github.com/Bel7phegor/shopnow-frontend) (React)
 - Infrastructure: [shopnow-infa](https://github.com/Bel7phegor/shopnow-infa) (Terraform/AWS)
-
-**Recommended Topics:**
-`java` `spring-boot` `microservices` `spring-cloud` `api-gateway` `eureka` `postgresql` `keycloak` `oauth2` `docker` `kubernetes` `aws-eks` `ci-cd` `devops`
-
 ---
 
 **Objective:** Build and maintain highly available, secure, and scalable microservices with automated deployment pipelines across development and production cloud environments.
