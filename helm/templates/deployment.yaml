@@ -24,7 +24,7 @@ spec:
           {{- if .Values.global.enabledComponents.configmap }}
           volumeMounts:
             - name: config-volume
-              mountPath: /app/src/main/resources/application.properties
+              mountPath: /app/application.properties
           {{- end }}
       
       {{- if .Values.image.pullSecret }}
