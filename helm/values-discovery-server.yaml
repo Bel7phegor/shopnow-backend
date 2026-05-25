@@ -1,0 +1,29 @@
+global:
+  appName: "shopnow-discovery-server"
+  namespace: "shopnow"
+  enabledComponents:
+    configmap: true
+    service: true
+    ingress: true
+
+image:
+  pullSecret: "shopnow-registry-secret"
+
+service:
+  type: ClusterIP
+  port: 8761
+  targetPort: 8761
+
+ingress:
+  className: "nginx"
+  host: "discovery.shopnow.anphuc.site"
+  path: "/"
+  pathType: Prefix
+
+configmap:
+  data:
+    application.properties: |
+      spring.application.name=discovery-server
+      server.port=8761
+      eureka.client.register-with-eureka=false
+      eureka.client.fetch-registry=false
