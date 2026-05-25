@@ -77,14 +77,23 @@ jobs:
 
       - name: Auto-assign EKS Access Entry for Runner
         run: |
+          # 1. Extract clean IAM Role ARN
           IAM_ARN=$(aws sts get-caller-identity --query "Arn" --output text | sed 's/sts::/iam::/' | sed 's/assumed-role/role/' | cut -d'/' -f1-2)
-          echo "Granting cluster permissions to ARN: $IAM_ARN"
+          echo "Checking cluster permissions for ARN: $IAM_ARN"
           
-          aws eks create-access-entry \
-            --cluster-name ${{ env.EKS_CLUSTER }} \
-            --principal-arn "$IAM_ARN" \
-            --type STANDARD || true
+          # 2. Check if Access Entry already exists, if not, create it
+          if aws eks describe-access-entry --cluster-name ${{ env.EKS_CLUSTER }} --principal-arn "$IAM_ARN" >/dev/null 2>&1; then
+            echo "Access Entry already exists. Skipping creation to avoid race condition."
+          else
+            echo "Access Entry not found. Creating new Access Entry..."
+            aws eks create-access-entry \
+              --cluster-name ${{ env.EKS_CLUSTER }} \
+              --principal-arn "$IAM_ARN" \
+              --type STANDARD || true
+          fi
             
+          # 3. Associate ClusterAdmin Policy (AWS handles idempotency for this, but we keep || true just in case)
+          echo "Ensuring ClusterAdmin policy is associated..."
           aws eks associate-access-policy \
             --cluster-name ${{ env.EKS_CLUSTER }} \
             --principal-arn "$IAM_ARN" \
@@ -99,7 +108,6 @@ jobs:
             HELM_OPTS="-f $VALUE_FILE"
           fi
 
-          # Tên Helm Release và AppName tự động ăn theo Matrix cực kỳ đồng bộ
           helm upgrade --install "shopnow-${{ matrix.service }}" ./helm \
             $HELM_OPTS \
             --namespace ${{ env.NAMESPACE }} \
