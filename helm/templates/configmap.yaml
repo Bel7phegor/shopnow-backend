@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.global.appName }}-configmap
+  name: {{ .Values.global.appName }}-application-properties-configmap
   namespace: {{ .Values.global.namespace }}
 data:
   {{- toYaml .Values.configmap.data | nindent 2 }}

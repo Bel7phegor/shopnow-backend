@@ -23,7 +23,7 @@ data:
     spring.cloud.gateway.routes[0].predicates[0]=Path=/api/product/**
 
     spring.cloud.gateway.routes[1].id=SHOPPING-CART-SERVICE
-    spring.cloud.gateway.routes[1].uri=http://shopnow-cart-service-service:5863
+    spring.cloud.gateway.routes[1].uri=http://shopnow-shopping-cart-service-service:5863
     spring.cloud.gateway.routes[1].predicates[0]=Path=/api/shopping-cart/**
 
     spring.cloud.gateway.routes[2].id=USER-SERVICE
