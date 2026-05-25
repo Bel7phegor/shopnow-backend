@@ -1,0 +1,51 @@
+global:
+  appName: "shopnow-api-gateway"
+  namespace: "shopnow"
+  enabledComponents:
+    configmap: true
+    service: true
+    ingress: true
+
+image:
+  pullSecret: "shopnow-registry-secret"
+
+service:
+  type: ClusterIP
+  port: 5860
+  targetPort: 5860
+
+ingress:
+  className: "nginx"
+  host: "api.shopnow.anphuc.site"
+  path: "/"
+  pathType: Prefix
+
+configmap:
+  data:
+    application.properties: |
+      spring.application.name=api-gateway
+      server.port=5860
+
+      eureka.instance.hostname=api-gateway
+      eureka.instance.instance-id=${spring.application.name}
+      eureka.client.service-url.defaultZone=http://shopnow-discovery-server-service:8761/eureka/
+
+      management.endpoints.web.base-path=/actuator
+      management.endpoints.web.exposure.include=*
+
+      spring.main.web-application-type=reactive
+
+      spring.cloud.gateway.discovery.locator.enabled=true
+      spring.cloud.gateway.routes[0].id=PRODUCT-SERVICE
+      spring.cloud.gateway.routes[0].uri=http://shopnow-product-service-service:5861
+      spring.cloud.gateway.routes[0].predicates[0]=Path=/api/product/**
+
+      # ==================== SỬA ĐỔI TẠI ĐÂY ====================
+      spring.cloud.gateway.routes[1].id=SHOPPING-CART-SERVICE
+      spring.cloud.gateway.routes[1].uri=http://shopnow-shopping-cart-service-service:5863
+      spring.cloud.gateway.routes[1].predicates[0]=Path=/api/shopping-cart/**
+      # ========================================================
+
+      spring.cloud.gateway.routes[2].id=USER-SERVICE
+      spring.cloud.gateway.routes[2].uri=http://shopnow-user-service-service:5865
+      spring.cloud.gateway.routes[2].predicates[0]=Path=/api/user/**
