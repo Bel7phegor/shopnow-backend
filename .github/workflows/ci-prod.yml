@@ -1,0 +1,118 @@
+name: CI/CD Backend — Production
+
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  AWS_REGION:    ap-southeast-3
+  NAMESPACE:     shopnow
+  EKS_CLUSTER:   shopnow-prod-eks
+  ECR_REGISTRY:  ${{ secrets.ECR_REGISTRY }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Filter changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api-gateway: 'api-gateway/**'
+            product-service: 'product-service/**'
+            shopping-cart-service: 'shopping-cart-service/**'
+            user-service: 'user-service/**'
+            discovery-server: 'discovery-server/**'
+
+  build-and-deploy:
+    name: Build & Deploy to Prod
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      matrix:
+        service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with: 
+          role-to-assume: ${{ secrets.ROLE_ACCESS_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        run: |
+          REPO_NAME="${{ github.event.repository.name }}/${{ matrix.service }}"
+          IMAGE_TAG="${{ github.ref_name }}_${{ github.sha }}"
+          
+          echo "Building image for ${{ matrix.service }}..."
+          docker build -t ${{ env.ECR_REGISTRY }}/$REPO_NAME:$IMAGE_TAG ./${{ matrix.service }}
+          
+          echo "Pushing image to ECR..."
+          docker push ${{ env.ECR_REGISTRY }}/$REPO_NAME:$IMAGE_TAG
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }}
+
+      - name: Auto-assign EKS Access Entry for Runner
+        run: |
+          IAM_ARN=$(aws sts get-caller-identity --query "Arn" --output text | sed 's/sts::/iam::/' | sed 's/assumed-role/role/' | cut -d'/' -f1-2)
+          echo "Granting cluster permissions to ARN: $IAM_ARN"
+          
+          aws eks create-access-entry \
+            --cluster-name ${{ env.EKS_CLUSTER }} \
+            --principal-arn "$IAM_ARN" \
+            --type STANDARD || true
+            
+          aws eks associate-access-policy \
+            --cluster-name ${{ env.EKS_CLUSTER }} \
+            --principal-arn "$IAM_ARN" \
+            --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy \
+            --access-scope type=cluster || true
+
+      - name: Deploy with Helm
+        run: |
+          VALUE_FILE="./helm/values-${{ matrix.service }}.yaml"
+          HELM_OPTS=""
+          if [ -f "$VALUE_FILE" ]; then
+            HELM_OPTS="-f $VALUE_FILE"
+          fi
+
+          # Tên Helm Release và AppName tự động ăn theo Matrix cực kỳ đồng bộ
+          helm upgrade --install "shopnow-${{ matrix.service }}" ./helm \
+            $HELM_OPTS \
+            --namespace ${{ env.NAMESPACE }} \
+            --create-namespace \
+            --set global.appName="shopnow-${{ matrix.service }}" \
+            --set image.repository=${{ env.ECR_REGISTRY }}/${{ github.event.repository.name }}/${{ matrix.service }} \
+            --set image.tag=${{ github.ref_name }}_${{ github.sha }} \
+            --atomic \
+            --timeout 5m \
+            --wait
+
+      - name: Verify deployment status
+        run: |
+          kubectl rollout status deployment/shopnow-${{ matrix.service }}-deployment \
+            -n ${{ env.NAMESPACE }} \
+            --timeout=180s
