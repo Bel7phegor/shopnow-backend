@@ -16,7 +16,7 @@ service:
 
 ingress:
   className: "nginx"
-  host: "user.shopnow.anphuc.site"
+  host: "user-service-shopnow.anphuc.site"
   path: "/"
   pathType: Prefix
 
