@@ -1,4 +1,4 @@
-name: CI/CD - Development
+name: CI/CD — Development
 
 on: 
   push: 
@@ -12,7 +12,6 @@ permissions:
   contents: read
 
 jobs:
-
   detect-changes:
     name: Detect Changed Services
     runs-on: ubuntu-latest

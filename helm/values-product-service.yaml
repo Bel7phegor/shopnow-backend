@@ -1,32 +1,32 @@
 global:
-  appName: "shopnow-shopping-cart-service" # Khớp với tên do Matrix của GitHub Actions sinh ra
+  appName: "shopnow-product-service"
   namespace: "shopnow"
   enabledComponents:
     configmap: true
     service: true
     ingress: true
-  
+
 image:
   pullSecret: "shopnow-registry-secret"
 
 service:
   type: ClusterIP
-  port: 5863
-  targetPort: 5863
+  port: 5861
+  targetPort: 5861
 
 ingress:
   className: "nginx"
-  host: "cart.shopnow.anphuc.site"
+  host: "product-service-shopnow.anphuc.site"
   path: "/"
   pathType: Prefix
 
 configmap:
   data:
     application.properties: |
-      spring.application.name=cart-service
-      server.port=5863
+      spring.application.name=product-service
+      server.port=5861
 
-      eureka.instance.hostname=cart-service
+      eureka.instance.hostname=product-service
       eureka.instance.instance-id=${spring.application.name}
       eureka.client.service-url.defaultZone=http://shopnow-discovery-server-service:8761/eureka/
 
@@ -35,4 +35,4 @@ configmap:
       spring.datasource.password=admin
       spring.jpa.hibernate.ddl-auto=update
       spring.jpa.show-sql=true
-      spring.jpa.properties.hibernate.format_sql=true
+      spring.jpa.properties.hibernate.format-sql=true

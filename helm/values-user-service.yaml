@@ -16,13 +16,14 @@ service:
 
 ingress:
   className: "nginx"
-  host: "user.shopnow.anphuc.site"
+  host: "user-service-shopnow.anphuc.site"
   path: "/"
   pathType: Prefix
 
 configmap:
   data:
     application.properties: |
+      # Application configuration
       spring.application.name=user-service
       server.port=5865
 
@@ -30,13 +31,15 @@ configmap:
       eureka.instance.instance-id=${spring.application.name}
       eureka.client.service-url.defaultZone=http://shopnow-discovery-server-service:8761/eureka/
 
+      # Datasource configuration
       spring.datasource.url=jdbc:postgresql://postgres:5432/postgres?useSSL=false
       spring.datasource.username=postgres
       spring.datasource.password=admin
       spring.jpa.hibernate.ddl-auto=update
       spring.jpa.show-sql=true
-      spring.jpa.properties.hibernate.format_sql=true
+      spring.jpa.properties.hibernate.format-sql=true
 
+      # JWT configuration
       jwt.issuer_uri=http://shopnow-keycloak-realms-service:8080/realms/java-microservice-realm/protocol/openid-connect/token
       jwt.client_id=spring-cloud-client
       jwt.client_secret=AJufwN1eof8P5Gga5Y9atCFqdMuZEuKd

@@ -25,6 +25,7 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /app/src/main/resources/application.properties
+              subPath: application.properties
           {{- end }}
       
       {{- if .Values.image.pullSecret }}
@@ -36,5 +37,5 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Values.global.appName }}-configmap
+            name: {{ .Values.global.appName }}-application-properties-configmap
       {{- end }}
