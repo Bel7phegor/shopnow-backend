@@ -13,6 +13,7 @@ env:
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
   detect-changes:
@@ -72,14 +73,15 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/$REPO_NAME:$IMAGE_TAG
 
   deploy:
-    name: Devloy to AWS EKS
+    name: Deploy to AWS EKS
     runs-on: ubuntu-latest
-    needs: build-and-deploy
+    needs: [detect-changes, build-and-deploy]
     if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
     environment: production
     strategy:
       matrix:
         service: ${{ fromJSON(needs.detect-changes.outputs.services) }}
+      fail-fast: false
     
     steps:
       - name: Checkout code
