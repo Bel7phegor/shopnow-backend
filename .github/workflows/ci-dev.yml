@@ -12,7 +12,6 @@ permissions:
   contents: read
 
 jobs:
-
   detect-changes:
     name: Detect Changed Services
     runs-on: ubuntu-latest
